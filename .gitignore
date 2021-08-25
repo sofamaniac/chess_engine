@@ -1,3 +1,4 @@
-src/obj/*
+src/obj/
 stockfish_14_x64_avx2
-.cache/*
+.cache/
+src/main
