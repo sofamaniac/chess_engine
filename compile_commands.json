@@ -1,0 +1,62 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-I../include",
+      "-g",
+      "-Wall",
+      "-o",
+      "obj/ia.o",
+      "ia.c"
+    ],
+    "directory": "/home/sofamaniac/Nextcloud/programmation/chess/src",
+    "file": "/home/sofamaniac/Nextcloud/programmation/chess/src/ia.c",
+    "output": "/home/sofamaniac/Nextcloud/programmation/chess/src/obj/ia.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-I../include",
+      "-g",
+      "-Wall",
+      "-o",
+      "obj/graphics.o",
+      "graphics.c"
+    ],
+    "directory": "/home/sofamaniac/Nextcloud/programmation/chess/src",
+    "file": "/home/sofamaniac/Nextcloud/programmation/chess/src/graphics.c",
+    "output": "/home/sofamaniac/Nextcloud/programmation/chess/src/obj/graphics.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-I../include",
+      "-g",
+      "-Wall",
+      "-o",
+      "obj/game.o",
+      "game.c"
+    ],
+    "directory": "/home/sofamaniac/Nextcloud/programmation/chess/src",
+    "file": "/home/sofamaniac/Nextcloud/programmation/chess/src/game.c",
+    "output": "/home/sofamaniac/Nextcloud/programmation/chess/src/obj/game.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-I../include",
+      "-g",
+      "-Wall",
+      "-o",
+      "obj/main.o",
+      "main.c"
+    ],
+    "directory": "/home/sofamaniac/Nextcloud/programmation/chess/src",
+    "file": "/home/sofamaniac/Nextcloud/programmation/chess/src/main.c",
+    "output": "/home/sofamaniac/Nextcloud/programmation/chess/src/obj/main.o"
+  }
+]
