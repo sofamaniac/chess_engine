@@ -2,3 +2,5 @@ src/obj/
 stockfish_14_x64_avx2
 .cache/
 src/main
+*.gdb_history
+*.out

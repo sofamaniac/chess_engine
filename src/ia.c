@@ -13,84 +13,6 @@ extern const bitboard kingPositionMask[BOARD_SIZE];
 extern const bitboard knightAttackMask[BOARD_SIZE];
 extern const bitboard RAYS[8][BOARD_SIZE];
 
-int threatened(gamestate* game, int target, int result[64]) {
-
-	int offset[] = {-1, 1, -8, 8, -9, 9, -7, 7};
-	int knights[] = {-6, -10, -15, -17, 6, 10, 15, 17};
-
-	int x = target % BOARD_WIDTH;
-	int y = target / BOARD_WIDTH;
-
-	int distLeft = x;	// distance to the left of the board
-	int distRight = BOARD_WIDTH - x -1;
-	int distUp = y;
-	int distDown = BOARD_HEIGHT - y -1;
-	int distDiag1 = min(distLeft, distUp);
-	int distDiag2 = min(distRight, distDown);
-	int distDiag3 = min(distRight, distUp);
-	int distDiag4 = min(distLeft, distDown);
-
-	int dist[] = {distLeft, distRight, distUp, distDown, 
-		distDiag1, distDiag2, distDiag3, distDiag4};
-	int nbThreats = 0;
-
-	for ( int off = 0; off < 8 ; off++ ) {
-		for (int i = 1 ; i <= dist[off] ; i++) {
-			int index = target + i*offset[off];
-			int endPiece = game->board[index];
-			int currX = index % BOARD_WIDTH;
-			int currY = index / BOARD_WIDTH;
-			if (index < 0 || index >= BOARD_SIZE) {
-				break;
-			}
-			if (game->board[index] == NONE_P){
-				continue;
-			} else if (game->pieces[endPiece].color == game->turn) {
-				// the axis is protected by an ally piece
-				break;
-			}
-			if (game->pieces[endPiece].type == PAWN) {
-				if (target - index == offset[4+game->pieces[endPiece].color] 
-						|| target - index == offset[6+game->pieces[endPiece].color]) {
-					result[nbThreats] = index;
-					nbThreats++;
-				}
-			} 
-			if (game->pieces[endPiece].type == ROOK || game->pieces[endPiece].type == QUEEN) {
-				if (off < 4 && (y == currY || x == currX)) {
-					// The rook can attack only on the same row
-					result[nbThreats] = index;
-					nbThreats++;
-				}
-			} 
-			if (game->pieces[endPiece].type == BISHOP || game->pieces[endPiece].type == QUEEN) {
-				if (off > 3 && currY != y) {
-					// The bishop cannot attack on its own row
-					result[nbThreats] = index;
-					nbThreats++;
-				}
-			}
-			// the axis is protected by an enemy piece
-			break;
-		}
-		// checking for knights
-		int knightIndex = target + knights[off];
-		if (knightIndex < 0 || knightIndex >= BOARD_SIZE) {
-			continue;
-		}
-		int enemy = game->board[knightIndex];
-		int dx = abs(x - (knightIndex % BOARD_WIDTH));
-		int dy = abs(y - (knightIndex / BOARD_WIDTH));
-		if ( game->pieces[enemy].type == KNIGHT && game->pieces[enemy].color != game->turn 
-				&& dx % 2 != dy %2 ) {
-
-			// the  knight cannont attack on its own row
-			result[nbThreats] = knightIndex;
-			nbThreats++;
-		}
-	}
-	return nbThreats;
-}
 bitboard threatsSliding(gamestate* game, int position, int start, int end, int color) {
 	int directions[] = {NORTH, SOUTH, WEST, EAST, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST};
 	extern const bitboard RAYS[8][BOARD_SIZE];
@@ -197,6 +119,7 @@ bitboard accessible(gamestate* game, int from, int color) {
 			break;
 		case ROOK:
 			access |= threatsSliding(game, from, 0, 4, color);
+			printBits(access);
 			break;
 		case BISHOP:
 			access |= threatsSliding(game, from, 4, 8, color);
