@@ -5,7 +5,6 @@
 # include "tools.h"
 # include "gamestate.h"
 
-
 extern const bitboard pawnAttackMask[2][BOARD_SIZE];
 extern const bitboard pawnPositionMask[2][BOARD_SIZE];
 extern const bitboard kingAttackMask[BOARD_SIZE];
@@ -53,6 +52,8 @@ bitboard pawnMoves(gamestate* game, int position, int color) {
 	bitboard access = pawnAttackMask[color][position];
 	access &= game->byColor[oppCol];
 	
+	// The following code
+	// ensure that there is nothing on path when moving 2 tiles
 	bitboard onPath = game->bits & RAYS[color][position];
 	bitboard allowed = pawnPositionMask[color][position] & ~game->bits;
 	int firstOnPath = -1;
@@ -78,7 +79,7 @@ bitboard kingMoves(gamestate* game, int position, int color) {
 	}
 	bitboard access = kingPositionMask[position];
 	
-	// checking if pieces obstructing castlings
+	// checking if there are pieces obstructing castlings
 	bitboard onPath = game->bits & RAYS[2][position];
 	int firstOnPath = -1;
 	if (onPath) {
@@ -100,7 +101,6 @@ bitboard accessible(gamestate* game, int from, int color) {
 	// return the tiles that can be *attacked* from the given position ([from])
 	// so to get the accesible tiles for the pawns, the user must OR the result
 	// with the proper mask
-	// TODO: add en passant spot ?
 	bitboard access = 0;
 	int index = game->board[from];
 
@@ -170,12 +170,14 @@ int createAllMoves2(gamestate* game, moveList* list) {
 			continue;	// the piece was captured
 		}
 		destination = accessible(game, game->pieces[index].position, game->turn);
+		/*
 		if (game->pieces[index].type == PAWN) {
 			// accessible returns the tiles that can be attacked
 			destination |= pawnPositionMask[game->turn][position];
 			// might have illegal moves which will be filtered later
 			// (on attack moves only because of en passant)
 		}
+		*/
 		destination &= ~game->byColor[game->turn];	//avoid tiles occupied by allies
 		for (int i = 0; i < BOARD_SIZE; i++) {
 			if (!getAtIndex(destination, i)) {
@@ -210,10 +212,11 @@ int depthSearch(gamestate game, int depth) {
 		return 1;
 	}
 	int totalMoves = 0;
-	moveList* list = malloc(sizeof(moveList*));
+	moveList* list = (moveList*) malloc(sizeof(moveList*));
 	list->next = NULL;
 	
-	createAllMoves2(&game, list);
+	createAllMoves2(&game, list); // might create illegal moves
+	// those illegal moves will be ignored when actually doing the move
 
 	moveList* iter = list;
 	for (int i = 0 ; iter->next != NULL ; iter = iter->next, i++ ) {
@@ -227,8 +230,8 @@ int depthSearch(gamestate game, int depth) {
 			for ( int j = 1; j < 5; j++) {
 				promote(&newGame, promotion, j);
 				tmp = depthSearch(newGame, depth-1);
-				char letter = promType[j-1];
 				if (depth == DEPTH) {
+					char letter = promType[j-1];
 					printMove(iter->start, iter->end, letter, tmp);
 				}
 				totalMoves += tmp;
