@@ -26,7 +26,7 @@ void move(gamestate* game, int start, int end) {
 	setAtIndex(&game->byColor[game->turn], end);
 	resetAtIndex(&game->byColor[game->turn], start);
 	resetAtIndex(&game->byColor[game->turn == WHITE], end);
-	// game->bits = game->byColor[WHITE] | game->byColor[BLACK];
+	game->bits = game->byColor[WHITE] | game->byColor[BLACK];
 }
 void undo(gamestate* game, int start, int end) {
 	move(game, end, start);
@@ -109,21 +109,18 @@ int doMove(int start, int end, gamestate* game, int revert) {
 		}
 	}else {
 		nbThreats = threatened2(game, kingIndex, &threats);
-		if (start == nameToIndex("b5")) {
-			printBits(threats);
-		}
 		if (nbThreats > 0) {
 			goto reset;
 		}
 	}
-	if (game->pieces[old].type == ROOK) {
-		castling = 8 + game->pieces[old].color;
-	}
-	// the condition is correct ? I think not
-	if (castling != -1 && castling < 4) {
-		if ( castling % 2 == 0){ // king's side castling
-			//if (threatened(game, start, threats) || threatened(game, start+1, threats)) {
-			if (getAtIndex(threats, start) || getAtIndex(threats, start+1)) {
+	if (game->pieces[startPiece].type == KING) {
+		if (abs(start-end) == 2 && game->pieces[endPiece].type != NONE_P) {
+			// a castling must end on an empty tile
+			goto reset;
+		}
+		if (start - end == -2) { // King's side castling
+			castling = 2*game->turn;
+			if (getAtIndex(threats, start) || getAtIndex(threats, start+1) || !game->castling[castling]) {
 				goto reset;
 			} else if (!revert) {
 				game->board[start+1] = game->board[start+3];
@@ -131,9 +128,10 @@ int doMove(int start, int end, gamestate* game, int revert) {
 				game->board[start+3] = NONE_P;
 				move(game, start+3, start+1);
 			}
-		} else { // Queen's side castling
-			// if (threatened(game, start, threats) || threatened(game, start-1, threats)) {
-			if (getAtIndex(threats, start) || getAtIndex(threats, start-1)) {
+		} else if (start - end == 2) { // Queen's side castling
+			castling = 2*game->turn +1;
+			if (getAtIndex(threats, start) || getAtIndex(threats, start-1) || !game->castling[castling]
+					|| game->board[start-3] != NONE_P) {
 				goto reset;
 			} else if (!revert){
 				game->board[start-1] = game->board[start-4];
@@ -141,8 +139,11 @@ int doMove(int start, int end, gamestate* game, int revert) {
 				game->board[start-4] = NONE_P;
 				move(game, start-4, start-1);
 			}
+		} else {
+			castling = 4+game->turn;
 		}
 	}
+
 	success = 1;
 	if (revert) {
 		goto reset;
@@ -175,7 +176,16 @@ void updateCastling(gamestate* game, int castling, int start, int end) {
 
 	int endPiece = game->board[end];
 	
-	if (castling == -1) {
+	if (castling == -1) {	// check if a rook has moved or was captured
+		if ( start == 63 || end == 63) {
+			game->castling[0] = 0;
+		} else if ( start == 56 || end == 56) {
+			game->castling[1] = 0;
+		} else if ( start == 7 || end == 7) {
+			game->castling[2] = 0;
+		} else if ( start == 0 || end == 0) {
+			game->castling[3] = 0;
+		}
 		return;
 	} else if (castling < 4) {	// the king castled
 		int color = game->pieces[endPiece].color;
@@ -185,17 +195,6 @@ void updateCastling(gamestate* game, int castling, int start, int end) {
 		int color = castling % 2;
 		game->castling[2*color] = 0;
 		game->castling[2*color+1] = 0;
-	} else {					// a rook moved or was captured
-		int ref = castling < 8 ? start : end;
-		if (ref == 63) {
-			game->castling[0] = 0;
-		} else if (ref == 56) {
-			game->castling[1] = 0;
-		} else if ( ref == 7) {
-			game->castling[2] = 0;
-		} else if (ref == 0) {
-			game->castling[3] = 0;
-		}
 	}
 }
 

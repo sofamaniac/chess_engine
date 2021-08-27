@@ -12,6 +12,7 @@ extern const bitboard kingAttackMask[BOARD_SIZE];
 extern const bitboard kingPositionMask[BOARD_SIZE];
 extern const bitboard knightAttackMask[BOARD_SIZE];
 extern const bitboard RAYS[8][BOARD_SIZE];
+extern const bitboard one;
 
 bitboard threatsSliding(gamestate* game, int position, int start, int end, int color) {
 	int directions[] = {NORTH, SOUTH, WEST, EAST, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST};
@@ -38,7 +39,7 @@ bitboard threatsSliding(gamestate* game, int position, int start, int end, int c
 					break;
 			}
 			result |= RAYS[directions[i]][position] & ~RAYS[directions[i]][firstOnPath];	// return the ray up to the first piece blocking it
-			result |= 1 << firstOnPath;	// the first piece on path is also accessible
+			result |= one << firstOnPath;	// the first on path is accessible (it will be dismissed outside of this function if needed)
 		}
 		else {
 			result |= RAYS[directions[i]][position];
@@ -77,6 +78,7 @@ bitboard kingMoves(gamestate* game, int position, int color) {
 	}
 	bitboard access = kingPositionMask[position];
 	
+	// checking if pieces obstructing castlings
 	bitboard onPath = game->bits & RAYS[2][position];
 	int firstOnPath = -1;
 	if (onPath) {
@@ -119,7 +121,6 @@ bitboard accessible(gamestate* game, int from, int color) {
 			break;
 		case ROOK:
 			access |= threatsSliding(game, from, 0, 4, color);
-			printBits(access);
 			break;
 		case BISHOP:
 			access |= threatsSliding(game, from, 4, 8, color);
@@ -142,6 +143,8 @@ int threatened2(gamestate *game, int target, bitboard* result) {
 			continue;
 		} else if (game->pieces[i].type == PAWN) {
 			threats |= pawnAttackMask[oppCol][pos];
+		} else if (game->pieces[i].type == KING) {
+			threats |= kingAttackMask[pos];
 		} else {
 			threats |= accessible(game, pos, oppCol);
 		}
@@ -151,130 +154,6 @@ int threatened2(gamestate *game, int target, bitboard* result) {
 		*result = threats;
 	}
 	return getAtIndex(threats, target);
-}
-
-
-
-int pawnOff[] = {-8, -16, -7, -9, 8, 16, 7, 9};
-int knightOff[] = {-6, -10, -15, -17, 6, 10, 15, 17};
-int offsets[] = {-1, 1, -8, 8, -9, 9, -7, 7};
-int kingOff[] = {-1, 1, -8, 8, -9, 9, -7, 7, 2, -2};
-
-int simShortRange(int result[], gamestate* game, int index) {
-	int *offList;
-	int beg = 0;
-	int end = 8;
-	int endPiece = game->board[index];
-	int size = 0;
-	switch(game->pieces[endPiece].type) {
-		case PAWN:
-			offList = pawnOff;
-			beg =    4 * game->pieces[endPiece].color;
-			end = 4 + 4 * game->pieces[endPiece].color;
-			break;
-		case KING:
-			offList = kingOff;
-			end = 10;
-			break;
-		case KNIGHT:
-			offList = knightOff;
-			break;
-	}
-	for (int i = beg ; i < end; i++) {
-		int newIndex = index + offList[i];
-		if (newIndex >= 0 && newIndex < BOARD_SIZE) {
-			if (doMove(index, newIndex, game, 1)) {
-					result[size++] = newIndex;
-			}
-		}
-	}
-	return size;
-}
-
-int simLongRange(int result[], gamestate* game, int index) {
-	int beg = 0;
-	int end = 8;
-	int size = 0;
-	int endPiece = game->board[index];
-	int x = index % BOARD_WIDTH;
-	int y = index / BOARD_WIDTH;
-
-	// Avoid repetition of indexes
-	int distLeft = x;	// distance to the left of the board
-	int distRight = BOARD_WIDTH - x -1;
-	int distUp = y;
-	int distDown = BOARD_HEIGHT - y -1;
-	int distDiag1 = min(distLeft, distUp);
-	int distDiag2 = min(distRight, distDown);
-	int distDiag3 = min(distRight, distUp);
-	int distDiag4 = min(distLeft, distDown);
-	int dist[] = {distLeft, distRight, distUp, distDown, 
-		distDiag1, distDiag2, distDiag3, distDiag4};
-
-	switch(game->pieces[endPiece].type) {
-		case ROOK:
-			end = 4;
-			break;
-		case BISHOP:
-			beg = 4;
-			break;
-	}
-
-	for ( int i = beg; i < end; i++) {
-		int newIndex = index + offsets[i];
-		for (int j = 0 ; j < dist[i] && newIndex >= 0 && newIndex < BOARD_SIZE ; j++, newIndex += offsets[i]) {
-			if (doMove(index, newIndex, game, 1)) {
-				result[size++] = newIndex;
-			}
-		}
-	}
-	return size;
-}
-
-int createAllMoves(gamestate* game, moveList* list) {
-
-	int size = 0;
-	int offset = (NB_PIECES / 2)*game->turn;
-
-	for (int index = offset ; index < NB_PIECES/2+offset ; index++) {
-		if (game->pieces[index].position == -1) {
-			continue;
-		}
-		if (game->board[game->pieces[index].position] != index) {
-			continue;	// the piece was captured
-		}
-		//if (game->pieces[index].color != game->turn) {
-		//	continue;
-		//}
-		int result[64]={0};
-		int nbMoves = 0;
-		switch (game->pieces[index].type) {
-			case PAWN:
-			case KNIGHT:
-			case KING:
-				nbMoves = simShortRange(result, game, game->pieces[index].position);
-				break;
-			case QUEEN:
-			case ROOK:
-			case BISHOP:
-				nbMoves = simLongRange(result, game, game->pieces[index].position);
-				break;
-			case NONE_P:
-				continue;
-				break;
-		}
-		for (int i = 0; i < nbMoves; i++) {
-			moveList* m = (moveList*) malloc(sizeof(moveList*));
-			m->start = list->start;
-			m->end = list->end;
-			m->next = list->next;
-			list->start = game->pieces[index].position;
-			list->end = result[i];
-			list->next = m;
-			size++;
-		}
-	}
-	return size;
 }
 
 int createAllMoves2(gamestate* game, moveList* list) {
@@ -287,8 +166,7 @@ int createAllMoves2(gamestate* game, moveList* list) {
 		position = game->pieces[index].position;
 		if (position == -1) {
 			continue;	// there is no piece
-		}
-		if (!getAtIndex(game->bits, position)) {
+		} else if (game->board[game->pieces[index].position] != index) {
 			continue;	// the piece was captured
 		}
 		destination = accessible(game, game->pieces[index].position, game->turn);

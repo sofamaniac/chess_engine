@@ -19,7 +19,11 @@ position = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"
 # need to test this one, pretty sure it breaks things because pieces of the same color
 # as the enemy cannont be on a threatend tile
 # position = "8/8/6K1/7r/7k/8/8/8 w - - 0 1"
-depth_max = 4
+# position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
+# position = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+position ="rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  "
+position = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 "
+depth_max = 5
 def put(dest, command):
     dest.stdin.write(command + '\n')
 
@@ -79,44 +83,59 @@ def searchErrors():
         print("Looking at depth {}".format(depth))
         resultStockfish, resultCustom = run(instr, depth)
     if resultCustom !=  resultStockfish:
-        findErrors(depth)
+        findErrors(depth, results=[resultStockfish, resultCustom])
     else:
         print("All clear :)")
 
 
-def findErrors(depth=1, moves=[], tabs=0):
+def findErrors(depth=1, moves=[], tabs=0, results=None):
+
     if depth == 0:
         return
     instr = "position fen " + position
+
     if moves:
         instr += " moves "
         for m in moves:
             tmp = m.split(':')
             instr += tmp[0] + " "
 
-    resultStockfish, resultCustom = run(instr, depth)
+    if results:
+        resultStockfish, resultCustom = results
+    else:
+        resultStockfish, resultCustom = run(instr, depth)
+
+    resultCustom.sort()
+    resultStockfish.sort()
+
+    stockfishMoves = [m.split(':')[0] for m in resultStockfish]
+    customMoves = [m.split(':')[0] for m in resultCustom]
 
     if len(resultCustom) < len(resultStockfish):
         missing = []
-        for m in resultStockfish:
-            if m not in resultCustom:
+        for m in stockfishMoves:
+            if m not in customMoves:
                 missing.append(m)
         print("{}missing moves {}".format("\t"*tabs, missing))
-        return
-    if len(resultCustom) > len(resultStockfish):
-        illegal = []
-        for m in resultCustom:
-            if m not in resultStockfish:
-                illegal.append(m)
-        print("{}illegal moves {}".format("\t"*tabs, illegal))
-        return
-
-    for i in range(len(resultCustom)):
-        if resultCustom[i] != resultStockfish[i]:
-            string = "\t"*tabs
-            print(string + resultCustom[i].split(':')[0])
-            newMoves = moves + [resultCustom[i]]
-            findErrors(depth-1, newMoves, tabs+1)
+    elif len(resultCustom) > len(resultStockfish):
+        missing = []
+        for m in customMoves:
+            if m not in stockfishMoves:
+                missing.append(m)
+        print("{}illegal moves {}".format("\t"*tabs, missing))
+    else:
+        for i in range(len(resultCustom)):
+            if resultCustom[i] == resultStockfish[i]:
+                continue
+            elif resultCustom[i].split(':')[0] != resultStockfish[i].split(':')[0]:
+                print("Illegal Move : {}".format(resultCustom[i].split(':')[0]))
+            else:
+                string = "\t"*tabs
+                m = resultCustom[i].split(':')[0]
+                print(string + m)
+                moves.append(m)
+                findErrors(depth-1, moves, tabs+1)
+            break
 
 def main():
     get(stockfish, toPrint=False)
