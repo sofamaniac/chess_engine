@@ -1,0 +1,329 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 24.82      0.31     0.31 27556221     0.00     0.00  threatsSliding
+ 13.61      0.48     0.17 224170896     0.00     0.00  getAtIndex
+ 11.21      0.62     0.14  5087587     0.00     0.00  threatened2
+  9.61      0.74     0.12        1     0.12     1.22  depthSearch
+  8.01      0.84     0.10 46524388     0.00     0.00  accessible
+  8.01      0.94     0.10   206604     0.00     0.00  createAllMoves2
+  5.60      1.01     0.07 23190789     0.00     0.00  bitScanReverse
+  4.80      1.07     0.06  5072212     0.00     0.00  isPromotion
+  4.00      1.12     0.05  7623853     0.00     0.00  doMove
+  2.40      1.15     0.03 51520551     0.00     0.00  bitScanForward
+  2.40      1.18     0.03  7065766     0.00     0.00  pawnMoves
+  2.40      1.21     0.03                             togglingIndex
+  0.80      1.22     0.01 20350864     0.00     0.00  resetAtIndex
+  0.80      1.23     0.01 10175378     0.00     0.00  setAtIndex
+  0.80      1.24     0.01   339256     0.00     0.00  kingMoves
+  0.80      1.25     0.01   206604     0.00     0.00  freeMoveList
+  0.00      1.25     0.00  5072212     0.00     0.00  updateCastling
+  0.00      1.25     0.00       40     0.00     0.00  indexToName
+  0.00      1.25     0.00        8     0.00     0.00  nameToIndex
+  0.00      1.25     0.00        6     0.00     0.00  startWith
+  0.00      1.25     0.00        1     0.00     0.00  createAttackMask
+  0.00      1.25     0.00        1     0.00     0.00  createKingAttackMask
+  0.00      1.25     0.00        1     0.00     0.00  createKingPositionMask
+  0.00      1.25     0.00        1     0.00     0.00  createKnightAttackMask
+  0.00      1.25     0.00        1     0.00     0.00  createPawnAttackMask
+  0.00      1.25     0.00        1     0.00     0.00  createPawnPositionMask
+  0.00      1.25     0.00        1     0.00     0.00  createPositionMask
+  0.00      1.25     0.00        1     0.00     0.00  createRaysDiags
+  0.00      1.25     0.00        1     0.00     0.00  createRaysLines
+  0.00      1.25     0.00        1     0.00     0.00  loadConfiguration
+  0.00      1.25     0.00        1     0.00     0.00  parseConfig
+  0.00      1.25     0.00        1     0.00     1.22  parseSearch
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2021 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.80% of 1.25 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     97.6    0.00    1.22                 cli [1]
+                0.00    1.22       1/1           parseSearch [3]
+                0.00    0.00       1/1           parseConfig [20]
+                0.00    0.00       6/6           startWith [24]
+                0.00    0.00       1/1           createKnightAttackMask [28]
+                0.00    0.00       1/1           createAttackMask [25]
+                0.00    0.00       1/1           createPositionMask [31]
+-----------------------------------------------
+                             5072212             depthSearch [2]
+                0.12    1.10       1/1           parseSearch [3]
+[2]     97.6    0.12    1.10       1+5072212 depthSearch [2]
+                0.05    0.68 7623853/7623853     doMove [4]
+                0.10    0.20  206604/206604      createAllMoves2 [8]
+                0.06    0.00 5072212/5072212     isPromotion [11]
+                0.01    0.00  206604/206604      freeMoveList [18]
+                0.00    0.00      40/40          indexToName [22]
+                             5072212             depthSearch [2]
+-----------------------------------------------
+                0.00    1.22       1/1           cli [1]
+[3]     97.6    0.00    1.22       1         parseSearch [3]
+                0.12    1.10       1/1           depthSearch [2]
+-----------------------------------------------
+                0.05    0.68 7623853/7623853     depthSearch [2]
+[4]     58.4    0.05    0.68 7623853         doMove [4]
+                0.14    0.42 5087587/5087587     threatened2 [5]
+                0.02    0.07 7623853/46524388     accessible [6]
+                0.01    0.00 20350864/20350864     resetAtIndex [16]
+                0.01    0.00 10175346/10175378     setAtIndex [17]
+                0.01    0.00 12711440/224170896     getAtIndex [9]
+                0.00    0.00 5072212/5072212     updateCastling [21]
+-----------------------------------------------
+                0.14    0.42 5087587/5087587     doMove [4]
+[5]     44.9    0.14    0.42 5087587         threatened2 [5]
+                0.08    0.34 35596481/46524388     accessible [6]
+-----------------------------------------------
+                0.01    0.03 3304054/46524388     createAllMoves2 [8]
+                0.02    0.07 7623853/46524388     doMove [4]
+                0.08    0.34 35596481/46524388     threatened2 [5]
+[6]     44.0    0.10    0.45 46524388         accessible [6]
+                0.31    0.08 27556221/27556221     threatsSliding [7]
+                0.03    0.02 7065766/7065766     pawnMoves [12]
+                0.01    0.00  339256/339256      kingMoves [15]
+-----------------------------------------------
+                0.31    0.08 27556221/27556221     accessible [6]
+[7]     31.1    0.31    0.08 27556221         threatsSliding [7]
+                0.05    0.00 16116379/23190789     bitScanReverse [10]
+                0.03    0.00 50874815/51520551     bitScanForward [13]
+-----------------------------------------------
+                0.10    0.20  206604/206604      depthSearch [2]
+[8]     24.0    0.10    0.20  206604         createAllMoves2 [8]
+                0.16    0.00 211459456/224170896     getAtIndex [9]
+                0.01    0.03 3304054/46524388     accessible [6]
+-----------------------------------------------
+                0.01    0.00 12711440/224170896     doMove [4]
+                0.16    0.00 211459456/224170896     createAllMoves2 [8]
+[9]     13.6    0.17    0.00 224170896         getAtIndex [9]
+-----------------------------------------------
+                0.00    0.00  327226/23190789     kingMoves [15]
+                0.02    0.00 6747184/23190789     pawnMoves [12]
+                0.05    0.00 16116379/23190789     threatsSliding [7]
+[10]     5.6    0.07    0.00 23190789         bitScanReverse [10]
+-----------------------------------------------
+                0.06    0.00 5072212/5072212     depthSearch [2]
+[11]     4.8    0.06    0.00 5072212         isPromotion [11]
+-----------------------------------------------
+                0.03    0.02 7065766/7065766     accessible [6]
+[12]     4.0    0.03    0.02 7065766         pawnMoves [12]
+                0.02    0.00 6747184/23190789     bitScanReverse [10]
+                0.00    0.00  318510/51520551     bitScanForward [13]
+-----------------------------------------------
+                0.00    0.00  318510/51520551     pawnMoves [12]
+                0.00    0.00  327226/51520551     kingMoves [15]
+                0.03    0.00 50874815/51520551     threatsSliding [7]
+[13]     2.4    0.03    0.00 51520551         bitScanForward [13]
+-----------------------------------------------
+                                                 <spontaneous>
+[14]     2.4    0.03    0.00                 togglingIndex [14]
+-----------------------------------------------
+                0.01    0.00  339256/339256      accessible [6]
+[15]     0.9    0.01    0.00  339256         kingMoves [15]
+                0.00    0.00  327226/23190789     bitScanReverse [10]
+                0.00    0.00  327226/51520551     bitScanForward [13]
+-----------------------------------------------
+                0.01    0.00 20350864/20350864     doMove [4]
+[16]     0.8    0.01    0.00 20350864         resetAtIndex [16]
+-----------------------------------------------
+                0.00    0.00      32/10175378     loadConfiguration [19]
+                0.01    0.00 10175346/10175378     doMove [4]
+[17]     0.8    0.01    0.00 10175378         setAtIndex [17]
+-----------------------------------------------
+                             1360919             freeMoveList [18]
+                0.01    0.00  206604/206604      depthSearch [2]
+[18]     0.8    0.01    0.00  206604+1360919 freeMoveList [18]
+                             1360919             freeMoveList [18]
+-----------------------------------------------
+                0.00    0.00       1/1           parseConfig [20]
+[19]     0.0    0.00    0.00       1         loadConfiguration [19]
+                0.00    0.00      32/10175378     setAtIndex [17]
+-----------------------------------------------
+                0.00    0.00       1/1           cli [1]
+[20]     0.0    0.00    0.00       1         parseConfig [20]
+                0.00    0.00       1/1           loadConfiguration [19]
+-----------------------------------------------
+                0.00    0.00 5072212/5072212     doMove [4]
+[21]     0.0    0.00    0.00 5072212         updateCastling [21]
+-----------------------------------------------
+                0.00    0.00      40/40          depthSearch [2]
+[22]     0.0    0.00    0.00      40         indexToName [22]
+-----------------------------------------------
+                0.00    0.00       8/8           createKingPositionMask [27]
+[23]     0.0    0.00    0.00       8         nameToIndex [23]
+-----------------------------------------------
+                0.00    0.00       6/6           cli [1]
+[24]     0.0    0.00    0.00       6         startWith [24]
+-----------------------------------------------
+                0.00    0.00       1/1           cli [1]
+[25]     0.0    0.00    0.00       1         createAttackMask [25]
+                0.00    0.00       1/1           createKingAttackMask [26]
+                0.00    0.00       1/1           createRaysDiags [32]
+                0.00    0.00       1/1           createRaysLines [33]
+                0.00    0.00       1/1           createPawnAttackMask [29]
+-----------------------------------------------
+                0.00    0.00       1/1           createAttackMask [25]
+[26]     0.0    0.00    0.00       1         createKingAttackMask [26]
+-----------------------------------------------
+                0.00    0.00       1/1           createPositionMask [31]
+[27]     0.0    0.00    0.00       1         createKingPositionMask [27]
+                0.00    0.00       8/8           nameToIndex [23]
+-----------------------------------------------
+                0.00    0.00       1/1           cli [1]
+[28]     0.0    0.00    0.00       1         createKnightAttackMask [28]
+-----------------------------------------------
+                0.00    0.00       1/1           createAttackMask [25]
+[29]     0.0    0.00    0.00       1         createPawnAttackMask [29]
+-----------------------------------------------
+                0.00    0.00       1/1           createPositionMask [31]
+[30]     0.0    0.00    0.00       1         createPawnPositionMask [30]
+-----------------------------------------------
+                0.00    0.00       1/1           cli [1]
+[31]     0.0    0.00    0.00       1         createPositionMask [31]
+                0.00    0.00       1/1           createPawnPositionMask [30]
+                0.00    0.00       1/1           createKingPositionMask [27]
+-----------------------------------------------
+                0.00    0.00       1/1           createAttackMask [25]
+[32]     0.0    0.00    0.00       1         createRaysDiags [32]
+-----------------------------------------------
+                0.00    0.00       1/1           createAttackMask [25]
+[33]     0.0    0.00    0.00       1         createRaysLines [33]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2021 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+   [6] accessible             [32] createRaysDiags        [20] parseConfig
+  [13] bitScanForward         [33] createRaysLines         [3] parseSearch
+  [10] bitScanReverse          [2] depthSearch            [12] pawnMoves
+   [8] createAllMoves2         [4] doMove                 [16] resetAtIndex
+  [25] createAttackMask       [18] freeMoveList           [17] setAtIndex
+  [26] createKingAttackMask    [9] getAtIndex             [24] startWith
+  [27] createKingPositionMask [22] indexToName             [5] threatened2
+  [28] createKnightAttackMask [11] isPromotion             [7] threatsSliding
+  [29] createPawnAttackMask   [15] kingMoves              [14] togglingIndex
+  [30] createPawnPositionMask [19] loadConfiguration      [21] updateCastling
+  [31] createPositionMask     [23] nameToIndex

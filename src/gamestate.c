@@ -66,20 +66,20 @@ int doMove(int start, int end, gamestate* game, int revert) {
 	if (game->pieces[startPiece].type == PAWN) {
 		// check the en passant pawn position
 		enPassant = (end == game->enPassantTarget);	// no need to check if the pawn is still there
-		if (abs(end-start) == 16) {
+		if (abs(end-start) == 16) {	// the pawn move forward of 2 tiles
 			nextPassant = end - BOARD_WIDTH*pawnDir;
 			access &= ~pawnAttackMask[game->turn][start];
 			access &= ~game->byColor[oppColor];	// the destination should be empty, but one must check if there is nothing on the path
 		} else if (abs(end-start) != 8) { // attempt a capture
 			access &= game->byColor[oppColor]; // there must be an enemy at the end
-		} else {
+		} else {	// move forward of 1 tile
 			access &= ~pawnAttackMask[game->turn][start];
 			access &= ~game->byColor[oppColor]; // otherwise the destination should be empty
 		}
 	} else if (game->pieces[startPiece].type == KING) {
 		kingIndex = end;
 	}
-	access &= ~game->byColor[game->turn];
+	// access &= ~game->byColor[game->turn];	// avoid allied pieces
 	pseudolegal = getAtIndex(access, end);
 	if(!pseudolegal && !enPassant) {
 		return 0;

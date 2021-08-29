@@ -14,16 +14,14 @@ extern const bitboard RAYS[8][BOARD_SIZE];
 extern const bitboard one;
 
 bitboard threatsSliding(gamestate* game, int position, int start, int end, int color) {
-	int directions[] = {NORTH, SOUTH, WEST, EAST, NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST};
-	extern const bitboard RAYS[8][BOARD_SIZE];
 	bitboard result = 0;
 
 	for (int i = start ; i < end ; i++) {
-		bitboard onPath = game->bits & RAYS[directions[i]][position];
+		bitboard onPath = game->bits & RAYS[i][position];
 		int firstOnPath = -1;
 		if (onPath) {
 			// depending on the direction we must look for the most/least significant bit set
-			switch (directions[i]) {
+			switch (i) {
 				case NORTH:
 				case NORTH_WEST:
 				case NORTH_EAST:
@@ -37,11 +35,11 @@ bitboard threatsSliding(gamestate* game, int position, int start, int end, int c
 					firstOnPath = lsb(onPath);
 					break;
 			}
-			result |= RAYS[directions[i]][position] & ~RAYS[directions[i]][firstOnPath];	// return the ray up to the first piece blocking it
+			result |= RAYS[i][position] & ~RAYS[i][firstOnPath];	// return the ray up to the first piece blocking it
 			result |= one << firstOnPath;	// the first on path is accessible (it will be dismissed outside of this function if needed)
 		}
 		else {
-			result |= RAYS[directions[i]][position];
+			result |= RAYS[i][position];
 		}
 	}
 	return result;
@@ -72,6 +70,7 @@ bitboard pawnMoves(gamestate* game, int position, int color) {
 }
 
 bitboard kingMoves(gamestate* game, int position, int color) {
+	// if the king cannont castle at all
 	if (color == WHITE && position != 60) {
 		return kingPositionMask[position];
 	} else if (color == BLACK && position != 4) {
@@ -166,18 +165,10 @@ int createAllMoves2(gamestate* game, moveList* list) {
 		position = game->pieces[index].position;
 		if (position == -1) {
 			continue;	// there is no piece
-		} else if (game->board[game->pieces[index].position] != index) {
+		} else if (game->board[position] != index) {
 			continue;	// the piece was captured
 		}
-		destination = accessible(game, game->pieces[index].position, game->turn);
-		/*
-		if (game->pieces[index].type == PAWN) {
-			// accessible returns the tiles that can be attacked
-			destination |= pawnPositionMask[game->turn][position];
-			// might have illegal moves which will be filtered later
-			// (on attack moves only because of en passant)
-		}
-		*/
+		destination = accessible(game, position, game->turn);
 		destination &= ~game->byColor[game->turn];	//avoid tiles occupied by allies
 		for (int i = 0; i < BOARD_SIZE; i++) {
 			if (!getAtIndex(destination, i)) {

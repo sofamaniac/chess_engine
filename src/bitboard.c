@@ -32,7 +32,7 @@ void togglingIndex(bitboard* b, unsigned int index) {
 	*b ^= one << index;
 }
 int getAtIndex(bitboard b, unsigned int index) {
-	return (b >> index) & 1;
+	return (b >> index) & one;
 }
 
 void createRaysLines() {
