@@ -4,3 +4,5 @@ stockfish_14_x64_avx2
 src/main
 *.gdb_history
 *.out
+*gmon.out
+*perf_out
