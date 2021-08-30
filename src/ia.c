@@ -11,10 +11,10 @@ extern const bitboard kingAttackMask[BOARD_SIZE];
 extern const bitboard kingPositionMask[BOARD_SIZE];
 extern const bitboard knightAttackMask[BOARD_SIZE];
 extern const bitboard RAYS[8][BOARD_SIZE];
+extern const bitboard singleTile[BOARD_SIZE];
 extern const bitboard one;
 
-bitboard threatsSliding(gamestate* game, int position, int start, int end, int color) {
-	bitboard result = 0;
+__attribute__((always_inline)) void threatsSliding(gamestate* game, int position, int start, int end, int color, bitboard* result) {
 
 	for (int i = start ; i < end ; i++) {
 		bitboard onPath = game->bits & RAYS[i][position];
@@ -35,25 +35,23 @@ bitboard threatsSliding(gamestate* game, int position, int start, int end, int c
 					firstOnPath = lsb(onPath);
 					break;
 			}
-			result |= RAYS[i][position] & ~RAYS[i][firstOnPath];	// return the ray up to the first piece blocking it
-			result |= one << firstOnPath;	// the first on path is accessible (it will be dismissed outside of this function if needed)
+			*result |= RAYS[i][position] & ~RAYS[i][firstOnPath];	// return the ray up to the first piece blocking it
+			*result |= singleTile[firstOnPath];	// the first on path is accessible (it will be dismissed outside of this function if needed)
 		}
 		else {
-			result |= RAYS[i][position];
+			*result |= RAYS[i][position];
 		}
 	}
-	return result;
 }
 
-bitboard pawnMoves(gamestate* game, int position, int color) {
-	int oppCol = game->turn ? WHITE : BLACK;
+__attribute__((always_inline)) bitboard pawnMoves(gamestate* game, int position, int color) {
+
 	bitboard access = pawnAttackMask[color][position];
-	access &= game->byColor[oppCol];
+	access |= pawnPositionMask[color][position] & ~game->bits;
 	
 	// The following code
 	// ensure that there is nothing on path when moving 2 tiles
 	bitboard onPath = game->bits & RAYS[color][position];
-	bitboard allowed = pawnPositionMask[color][position] & ~game->bits;
 	int firstOnPath = -1;
 	if (onPath) {
 		if (color) {
@@ -61,33 +59,30 @@ bitboard pawnMoves(gamestate* game, int position, int color) {
 		} else {
 			firstOnPath = msb(onPath);
 		}
-		access |= allowed & ~RAYS[color][firstOnPath];
-	} else {
-		access |= allowed;
+		access &= ~RAYS[color][firstOnPath];
 	}
 
 	return access;
 }
 
-bitboard kingMoves(gamestate* game, int position, int color) {
+__attribute__((always_inline)) bitboard kingMoves(gamestate* game, int position, int color) {
 	// if the king cannont castle at all
-	if (color == WHITE && position != 60) {
-		return kingPositionMask[position];
-	} else if (color == BLACK && position != 4) {
-		return kingPositionMask[position];
-	}
 	bitboard access = kingPositionMask[position];
+	if (color == WHITE && position != 60) {
+		return access;
+	} else if (color == BLACK && position != 4) {
+		return access;
+	}
 	
 	// checking if there are pieces obstructing castlings
 	bitboard onPath = game->bits & RAYS[2][position];
-	int firstOnPath = -1;
+	int firstOnPath;
 	if (onPath) {
 		firstOnPath = msb(onPath);
 		access &= ~RAYS[2][firstOnPath];
 	}
 
 	onPath = game->bits & RAYS[3][position];
-	firstOnPath = -1;
 	if (onPath) {
 		firstOnPath = lsb(onPath);
 		access &= ~RAYS[3][firstOnPath];
@@ -97,33 +92,33 @@ bitboard kingMoves(gamestate* game, int position, int color) {
 }
 
 bitboard accessible(gamestate* game, int from, int color) {
-	// return the tiles that can be *attacked* from the given position ([from])
-	// so to get the accesible tiles for the pawns, the user must OR the result
-	// with the proper mask
-	bitboard access = 0;
+	// return the tiles that can be accessed by the pieces at [from]
+	// Note: for pawns, one must check for the presence of enemy
+	// for the validity of the move
+	bitboard access;
 	int index = game->board[from];
 
 	switch (game->pieces[index].type) {
 		case PAWN:
 			access = pawnMoves(game, from, color);
-			access |= pawnAttackMask[color][game->pieces[index].position];
 			break;
 		case KING:
-			//access |= kingAttackMask[from];
 			access = kingMoves(game, from, color);
 			break;
 		case KNIGHT:
-			access |= knightAttackMask[from];
+			access = knightAttackMask[from];
 			break;
 		case QUEEN:
-			access |= threatsSliding(game, from, 0, 8, color);
+			threatsSliding(game, from, 0, 8, color, &access);
 			break;
 		case ROOK:
-			access |= threatsSliding(game, from, 0, 4, color);
+			threatsSliding(game, from, 0, 4, color, &access);
 			break;
 		case BISHOP:
-			access |= threatsSliding(game, from, 4, 8, color);
+			threatsSliding(game, from, 4, 8, color, &access);
 			break;
+		default:
+			access = 0;
 	}
 	access &= ~game->byColor[color];
 	return access;
@@ -132,15 +127,15 @@ bitboard accessible(gamestate* game, int from, int color) {
 int threatened2(gamestate *game, int target, bitboard* result) {
 	int oppCol = game->turn ? WHITE : BLACK;
 	int off = oppCol * NB_PIECES / 2;
+	int pos;
 
 	bitboard threats = 0;
 
-	for(int i = off ; i < off + NB_PIECES / 2 ; i++) {
-		int pos = game->pieces[i].position;
-		if (pos == -1 || pos > BOARD_SIZE
-				|| game->board[pos] != i){	// if the index is invalid or if the piece was captured
+	for(int i = off ; i < off + NB_PIECES / 2 && (pos = game->pieces[i].position) != -1 ; i++) {
+		if (game->board[pos] != i){	// if the index is invalid or if the piece was captured
 			continue;
-		} else if (game->pieces[i].type == PAWN) {
+		} 
+		else if (game->pieces[i].type == PAWN) {
 			threats |= pawnAttackMask[oppCol][pos];
 		} else if (game->pieces[i].type == KING) {
 			threats |= kingAttackMask[pos];
@@ -148,7 +143,6 @@ int threatened2(gamestate *game, int target, bitboard* result) {
 			threats |= accessible(game, pos, oppCol);
 		}
 	}
-	threats &= ~game->byColor[oppCol];	// avoid allied pieces
 	if (result != NULL) {
 		*result = threats;
 	}
@@ -161,27 +155,23 @@ int createAllMoves2(gamestate* game, moveList* list) {
 	int position = -1;
 	bitboard destination = 0;
 
-	for (int index = offset ; index < NB_PIECES/2+offset ; index++) {
-		position = game->pieces[index].position;
-		if (position == -1) {
-			continue;	// there is no piece
-		} else if (game->board[position] != index) {
+	for (int index = offset ; index < NB_PIECES/2+offset && (position = game->pieces[index].position) != -1  ; index++) {
+		if (game->board[position] != index) {
 			continue;	// the piece was captured
 		}
 		destination = accessible(game, position, game->turn);
-		destination &= ~game->byColor[game->turn];	//avoid tiles occupied by allies
 		for (int i = 0; i < BOARD_SIZE; i++) {
-			if (!getAtIndex(destination, i)) {
-				continue;
+			if (destination & one) {
+				moveList* m = (moveList*) malloc(sizeof(moveList*));
+				m->start = list->start;
+				m->end = list->end;
+				m->next = list->next;
+				list->start = position;
+				list->end = i;
+				list->next = m;
+				size++;
 			}
-			moveList* m = (moveList*) malloc(sizeof(moveList*));
-			m->start = list->start;
-			m->end = list->end;
-			m->next = list->next;
-			list->start = position;
-			list->end = i;
-			list->next = m;
-			size++;
+			destination = destination >> 1;
 		}
 	}
 	return size;
@@ -204,38 +194,39 @@ int depthSearch(gamestate game, int depth) {
 	}
 	int totalMoves = 0;
 	moveList* list = (moveList*) malloc(sizeof(moveList*));
+	moveList* iter = list;
+	int promotion = 0;
+	int tmp = 0;
+	gamestate newGame;
 	list->next = NULL;
 	
 	createAllMoves2(&game, list); // might create illegal moves
 	// those illegal moves will be ignored when actually doing the move
 
-	moveList* iter = list;
-	for (int i = 0 ; iter->next != NULL ; iter = iter->next, i++ ) {
-		gamestate newGame = game;
-		if (!doMove(iter->start, iter->end, &newGame, 0)) {
-			continue;
-		}
-		int promotion = isPromotion(&newGame);
-		int tmp = 0;
-		if (promotion != -1) {
-			for ( int j = 1; j < 5; j++) {
-				promote(&newGame, promotion, j);
-				tmp = depthSearch(newGame, depth-1);
-				if (depth == DEPTH) {
-					char letter = promType[j-1];
-					printMove(iter->start, iter->end, letter, tmp);
+	while(list->next != NULL) {
+		newGame = game;
+		if (doMove(iter->start, iter->end, &newGame, 0, &promotion)) {
+			if (promotion) {
+				for (int j = 1; j < 5; j++) {
+					promote(&newGame, iter->end, j);
+					tmp = depthSearch(newGame, depth-1);
+					if (depth == DEPTH) {
+						printMove(iter->start, iter->end, promType[j-1], tmp);
+					}
+					totalMoves += tmp;
 				}
+			} else {
+				tmp = depthSearch(newGame, depth-1);
 				totalMoves += tmp;
+				if (depth == DEPTH) {
+					printMove(iter->start, iter->end, 0, tmp);
+				}
 			}
-			continue;
 		}
-		tmp = depthSearch(newGame, depth-1);
-		if (depth == DEPTH) {
-			printMove(iter->start, iter->end, 0, tmp);
-		}
-		totalMoves += tmp;
+		iter = iter->next;
+		free(list);
+		list = iter;
 	}
-	freeMoveList(list);
 	return totalMoves;
 }
 		

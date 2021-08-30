@@ -13,12 +13,10 @@ typedef struct moveList {
 	struct moveList* next;
 } moveList;
 
-int threatened(gamestate* game, int target, int result[64]);
 int threatened2(gamestate* game, int target, bitboard* result);
 bitboard accessible(gamestate* game, int from, int color);
-bitboard threatsSliding(gamestate* game, int position, int start, int end, int color);
+void threatsSliding(gamestate* game, int position, int start, int end, int color, bitboard* result);
 
-int createAllMoves(gamestate* game, moveList* list);
 int createAllMoves2(gamestate* game, moveList* list);
 void freeMoveList(moveList* list);
 int depthSearch(gamestate game, int depth);

@@ -16,8 +16,7 @@ int cli(void) {
 	char command[1000]="";
 	gamestate game;
 	int run = 1;
-	createAttackMask();
-	createPositionMask();
+	initMask();
 	while(run) {
 		memset(command, 0, sizeof(command));	// reset command to empty string
 		scanf("%[^\n]", command);
@@ -53,7 +52,7 @@ int cli(void) {
 }
 
 
-
+/*
 int mainLoop(SDL_Window* window, SDL_Renderer* r) {
 	// function handling the game loop
 	
@@ -74,12 +73,9 @@ int mainLoop(SDL_Window* window, SDL_Renderer* r) {
 	printf("nb moves : %d\n", depthSearch(game, DEPTH)); 
 
 	
-	/*
-	int result[64];
 	int size = threatened(game, nameToIndex("h3"), result);
 	doMove(nameToIndex("h5"), nameToIndex("h1"), &game);
 	printThreats2(result, size);
-	*/
 
 	while(isOpen) {
 		while (SDL_PollEvent(&event)) {
@@ -105,19 +101,20 @@ int mainLoop(SDL_Window* window, SDL_Renderer* r) {
 				case SDL_MOUSEBUTTONUP:
 					if (event.button.button == SDL_BUTTON_LEFT && selectIndex != -1) {
 						int index = getSelectTile(renderer);
-						if (doMove(selectIndex, index, &game, 0)) {
-							if (game.turn == WHITE) {
-								game.clock++;
-							}
-							int prom = isPromotion(&game);
-							if (prom > 0) {
-								promote(&game, prom, 3);
-							}
+						int trash;
+						if (doMove(selectIndex, index, &game, 0, &trash)) {
+						if (game.turn == WHITE) {
+							game.clock++;
+						}
+						int prom = isPromotion(&game);
+						if (prom > 0) {
+							promote(&game, prom, 3);
 						}
 					}
-					selectIndex = -1;
+				}
+				selectIndex = -1;
 
-					break;
+				break;
 			}
 		}
 		graphics_tick++;
@@ -141,6 +138,7 @@ int mainLoop(SDL_Window* window, SDL_Renderer* r) {
 
 	return 0;
 }
+*/
 
 int getIndexAtCoords(int x, int y) {
 

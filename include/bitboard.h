@@ -24,6 +24,8 @@ void togglingIndex(bitboard* b, unsigned int index);
 int getAtIndex(bitboard b, unsigned int index);
 void createAttackMask();
 void createPositionMask();
+void createSingleTile();
+void initMask();
 int bitScanReverse(bitboard b);
 int bitScanForward(bitboard bb);
 

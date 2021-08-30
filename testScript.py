@@ -19,11 +19,8 @@ position = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"
 # need to test this one, pretty sure it breaks things because pieces of the same color
 # as the enemy cannont be on a threatend tile
 # position = "8/8/6K1/7r/7k/8/8/8 w - - 0 1"
-# position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
-# position = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
-position ="rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  "
-position = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 "
-depth_max = 5
+position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
+depth_max = 6
 def put(dest, command):
     dest.stdin.write(command + '\n')
 
@@ -142,10 +139,9 @@ def main():
     put(stockfish, "uci")
     get(stockfish, toPrint=False)
 
-    # put(custom, "isready")
-    # get(custom, toPrint=False)
+    # searchErrors()
 
-    searchErrors()
+    run("position fen " + position, depth_max)
 
     put(stockfish, "quit")
     put(custom, "quit")

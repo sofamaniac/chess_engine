@@ -97,7 +97,6 @@ void parseConfig(const char command[], gamestate* game) {
 	while( command[i++] != ' ');// goes to fen
 	while( command[i++] != ' ');// goes to the start of the config
 	loadConfiguration(&(command[i]), game);
-	//printf("%s\n", command+i);
 	while ( command[i] != '\0' && command[i] != 's' ) { // find the beginning of the move list
 		i++;
 	}
@@ -108,7 +107,8 @@ void parseConfig(const char command[], gamestate* game) {
 		while (command[i] == ' '){
 			i++;
 		}
-		doMove(nameToIndex(&command[i]), nameToIndex(&command[i+2]), game, 0);
+		int trash;
+		doMove(nameToIndex(&command[i]), nameToIndex(&command[i+2]), game, 0, &trash);
 		i += 4;
 		if (command[i] != ' ' && command[i] != '\0') {	// there is a promotion
 			int target = nameToIndex(&command[i-2]);

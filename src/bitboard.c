@@ -4,17 +4,11 @@
 # include <stdlib.h>
 # include <stdio.h>
 
-//bitboard rookAttackMask[BOARD_SIZE];
-//bitboard bishopAttackMask[BOARD_SIZE];
-//bitboard queenAttackMask[BOARD_SIZE];
 bitboard RAYS[8][BOARD_SIZE]; // direction, starting position
 bitboard kingAttackMask[BOARD_SIZE];
 bitboard knightAttackMask[BOARD_SIZE];
 bitboard pawnAttackMask[2][BOARD_SIZE]; // Whites and Blacks
 
-//bitboard rookPositionMask[BOARD_SIZE];
-//bitboard bishopPositionMask[BOARD_SIZE];
-//bitboard queenPositionMask[BOARD_SIZE];
 bitboard knightPositionMask[BOARD_SIZE];
 bitboard kingPositionMask[BOARD_SIZE];
 bitboard pawnPositionMask[2][BOARD_SIZE]; // Whites and Blacks
@@ -22,16 +16,19 @@ bitboard pawnPositionMask[2][BOARD_SIZE]; // Whites and Blacks
 // we define a constant to avoid int overflow
 const bitboard one = 1;
 
-void setAtIndex(bitboard* b, unsigned int index) {
-	*b |= one << index;
+// we define numbers with only one bit set
+bitboard singleTile[BOARD_SIZE];
+
+__attribute__((always_inline)) void setAtIndex(bitboard* b, unsigned int index) {
+	*b |= singleTile[index];
 }
-void resetAtIndex(bitboard* b, unsigned int index) {
-	*b &= ~(one << index);
+__attribute__((always_inline)) void resetAtIndex(bitboard* b, unsigned int index) {
+	*b &= ~(singleTile[index]);
 }
 void togglingIndex(bitboard* b, unsigned int index) {
-	*b ^= one << index;
+	*b ^= singleTile[index];
 }
-int getAtIndex(bitboard b, unsigned int index) {
+__attribute__((always_inline)) int getAtIndex(bitboard b, unsigned int index) {
 	return (b >> index) & one;
 }
 
@@ -198,6 +195,17 @@ void createPositionMask() {
 	createPawnPositionMask();
 	createKnightPositionMask();
 }
+void createSingleTile() {
+	for (int i = 0 ; i < BOARD_SIZE ; i++ ) {
+		singleTile[i] = one << i;
+	}
+}
+
+void initMask() {
+	createSingleTile();
+	createAttackMask();
+	createPositionMask();
+}
 const int index64[64] = {
     0, 47,  1, 56, 48, 27,  2, 60,
    57, 49, 41, 37, 28, 16,  3, 61,
@@ -217,7 +225,7 @@ const int index64[64] = {
  * @return index (0..63) of most significant one bit
  */
 // wanted to use __builtin_clz, but it's limited to 32 bits
-int bitScanReverse(bitboard bb) {
+__attribute__((always_inline)) int bitScanReverse(bitboard bb) {
    const bitboard debruijn64 = (bitboard) 0x03f79d71b4cb0a89;
    bb |= bb >> 1; 
    bb |= bb >> 2;
@@ -235,7 +243,7 @@ int bitScanReverse(bitboard bb) {
  * @precondition bb != 0
  * @return index (0..63) of least significant one bit
  */
-int bitScanForward(bitboard bb) {
+__attribute__((always_inline)) int bitScanForward(bitboard bb) {
    const bitboard debruijn64 = (bitboard) 0x03f79d71b4cb0a89;
    return index64[((bb ^ (bb-1)) * debruijn64) >> 58];
 }

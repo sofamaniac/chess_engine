@@ -32,10 +32,10 @@ void undo(gamestate* game, int start, int end) {
 	move(game, end, start);
 }
 
-int doMove(int start, int end, gamestate* game, int revert) {
+int doMove(int start, int end, gamestate* game, int revert, int* isPromotion) {
 	// if revert is set to 1, then the move is only simulated and not executed
 
-	int endPiece = game->board[end];
+	// int endPiece = game->board[end];
 	int startPiece = game->board[start];
 	int enPassant = 0;
 	int nextPassant = -1;
@@ -56,7 +56,7 @@ int doMove(int start, int end, gamestate* game, int revert) {
 		return 0;
 	} else if ( startPiece == NONE_P) {
 		return 0;
-	} else if (endPiece != NONE_P && game->pieces[endPiece].color == game->turn) {
+	} else if (getAtIndex(game->byColor[game->turn], end)) {
 		return 0;
 	} else if (game->pieces[startPiece].color != game->turn) {
 		return 0;
@@ -76,10 +76,10 @@ int doMove(int start, int end, gamestate* game, int revert) {
 			access &= ~pawnAttackMask[game->turn][start];
 			access &= ~game->byColor[oppColor]; // otherwise the destination should be empty
 		}
+		*isPromotion = game->turn ? end >= (BOARD_HEIGHT-1)*BOARD_WIDTH : end < BOARD_WIDTH;
 	} else if (game->pieces[startPiece].type == KING) {
 		kingIndex = end;
 	}
-	// access &= ~game->byColor[game->turn];	// avoid allied pieces
 	pseudolegal = getAtIndex(access, end);
 	if(!pseudolegal && !enPassant) {
 		return 0;
@@ -109,12 +109,12 @@ int doMove(int start, int end, gamestate* game, int revert) {
 		}
 	}else {
 		nbThreats = threatened2(game, kingIndex, &threats);
-		if (nbThreats > 0) {
+		if (nbThreats) {
 			goto reset;
 		}
 	}
 	if (game->pieces[startPiece].type == KING) {
-		if (abs(start-end) == 2 && game->pieces[endPiece].type != NONE_P) {
+		if (abs(start-end) == 2 && getAtIndex(game->bits, end)) {
 			// a castling must end on an empty tile
 			goto reset;
 		}
@@ -131,7 +131,7 @@ int doMove(int start, int end, gamestate* game, int revert) {
 		} else if (start - end == 2) { // Queen's side castling
 			castling = 2*game->turn +1;
 			if (getAtIndex(threats, start) || getAtIndex(threats, start-1) || !game->castling[castling]
-					|| game->board[start-3] != NONE_P) {
+					|| getAtIndex(game->bits, start-3)) {
 				goto reset;
 			} else if (!revert){
 				game->board[start-1] = game->board[start-4];
@@ -186,7 +186,6 @@ void updateCastling(gamestate* game, int castling, int start, int end) {
 		} else if ( start == 0 || end == 0) {
 			game->castling[3] = 0;
 		}
-		return;
 	} else if (castling < 4) {	// the king castled
 		int color = game->pieces[endPiece].color;
 		game->castling[2*color] = 0;
@@ -199,13 +198,16 @@ void updateCastling(gamestate* game, int castling, int start, int end) {
 }
 
 int isPromotion(gamestate* game) {
+	int up, down;
+	int index;
 	for(int i = 0; i < BOARD_WIDTH; i ++) {
-		int up = game->board[i];
-		int down = game->board[ (BOARD_HEIGHT-1) * BOARD_WIDTH + i ];
+		index = BOARD_SIZE - 1 - i;
+		up = game->board[i];
+		down = game->board[index];
 		if (game->pieces[up].type == PAWN) {
 			return i;
 		} else if (game->pieces[down].type == PAWN) {
-			return (BOARD_HEIGHT-1) * BOARD_WIDTH + i;
+			return index;
 		}
 	}
 	return -1;

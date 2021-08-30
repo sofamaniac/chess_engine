@@ -43,7 +43,7 @@ typedef struct gamestate {
 } gamestate;
 
 
-int doMove(int start, int end, gamestate* game, int revert);
+int doMove(int start, int end, gamestate* game, int revert, int* isPromotion);
 void updateCastling(gamestate* game, int castling, int start, int end);
 int checkObstruction(gamestate* game, int startX, int startY, int endX, int endY, int dx, int dy);
 int isPromotion(gamestate* game);
