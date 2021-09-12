@@ -20,7 +20,8 @@ position = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"
 # as the enemy cannont be on a threatend tile
 # position = "8/8/6K1/7r/7k/8/8/8 w - - 0 1"
 position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
-depth_max = 6
+position = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+depth_max = 1
 def put(dest, command):
     dest.stdin.write(command + '\n')
 
@@ -139,9 +140,7 @@ def main():
     put(stockfish, "uci")
     get(stockfish, toPrint=False)
 
-    # searchErrors()
-
-    run("position fen " + position, depth_max)
+    searchErrors()
 
     put(stockfish, "quit")
     put(custom, "quit")

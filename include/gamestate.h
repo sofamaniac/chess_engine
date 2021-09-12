@@ -39,11 +39,12 @@ typedef struct gamestate {
 	int kingsIndex[2];		// position of both kings
 	tile pieces[NB_PIECES+1];		// 0-15 for white ; 16-31 for black ; 32 for empty tile
 	bitboard bits;
-	bitboard byColor[2];
+	bitboard byColor[2];	// bitboard by color of pieces
+	bitboard byType[6];		// bitboard by type of pieces
 } gamestate;
 
 
-int doMove(int start, int end, gamestate* game, int revert, int* isPromotion);
+int doMove(int start, int end, gamestate* game, int revert, int* isPromotion, bitboard pinned);
 void updateCastling(gamestate* game, int castling, int start, int end);
 int checkObstruction(gamestate* game, int startX, int startY, int endX, int endY, int dx, int dy);
 int isPromotion(gamestate* game);

@@ -108,7 +108,7 @@ void parseConfig(const char command[], gamestate* game) {
 			i++;
 		}
 		int trash;
-		doMove(nameToIndex(&command[i]), nameToIndex(&command[i+2]), game, 0, &trash);
+		doMove(nameToIndex(&command[i]), nameToIndex(&command[i+2]), game, 0, &trash, 0);
 		i += 4;
 		if (command[i] != ' ' && command[i] != '\0') {	// there is a promotion
 			int target = nameToIndex(&command[i-2]);
@@ -180,6 +180,9 @@ void loadConfiguration(const char config[], gamestate* game) {
 	game->bits = 0;
 	game->byColor[WHITE] = 0;
 	game->byColor[BLACK] = 0;
+	for (int i = 0 ; i < 6 ; i++ ) {
+		game->byType[i] = 0;
+	}
 	for (int j = 0 ; j < NB_PIECES + 1 ; j++ ) {
 		game->pieces[j].type = NONE_P;
 		game->pieces[j].color = WHITE;
@@ -210,6 +213,7 @@ void loadConfiguration(const char config[], gamestate* game) {
 		tile curr = { .color=color, .type=get_type(config[i]), .position=board_pos};
 		game->pieces[lastIndex[color]] = curr;
 		setAtIndex(&game->byColor[color], board_pos);
+		setAtIndex(&game->byType[curr.type], board_pos);
 		game->board[board_pos] = lastIndex[color];
 		lastIndex[color]++;
 		if (curr.type == KING) {

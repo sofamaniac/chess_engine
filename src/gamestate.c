@@ -23,22 +23,33 @@ void resetBit(gamestate* game, int index) {
 void move(gamestate* game, int start, int end) {
 	// use propagate move on all gamestate structure members	
 	// this function should be used to undo the move by inversing the order of start and end
+	
 	setAtIndex(&game->byColor[game->turn], end);
 	resetAtIndex(&game->byColor[game->turn], start);
 	resetAtIndex(&game->byColor[game->turn == WHITE], end);
+
+	int startPiece = game->pieces[game->board[start]].type;
+	setAtIndex(&game->byType[startPiece], end);
+	resetAtIndex(&game->byType[startPiece], start);
+	
+	int endPiece = game->pieces[game->board[end]].type;
+	if (endPiece != NONE_P) {
+		resetAtIndex(&game->byType[endPiece], end);
+	}
+	
 	game->bits = game->byColor[WHITE] | game->byColor[BLACK];
 }
 void undo(gamestate* game, int start, int end) {
 	move(game, end, start);
 }
 
-int doMove(int start, int end, gamestate* game, int revert, int* isPromotion) {
+int doMove(int start, int end, gamestate* game, int revert, int* isPromotion, bitboard pinned) {
 	// if revert is set to 1, then the move is only simulated and not executed
 
 	// int endPiece = game->board[end];
 	int startPiece = game->board[start];
 	int enPassant = 0;
-	int nextPassant = -1;
+	int nextPassant = -1;	// next enPassantTarget
 	int castling = -1;
 	int pawnDir = game->turn ? 1 : -1;
 
@@ -46,8 +57,7 @@ int doMove(int start, int end, gamestate* game, int revert, int* isPromotion) {
 	int pseudolegal = 1;
 	int success = 0;
 	int old = game->board[end];
-	int oppColor = game->turn == WHITE ? BLACK : WHITE;
-
+	int oppColor = game->turn == WHITE;
 
 	if ( start == end ) {
 		return 0;
@@ -59,6 +69,8 @@ int doMove(int start, int end, gamestate* game, int revert, int* isPromotion) {
 	} else if (getAtIndex(game->byColor[game->turn], end)) {
 		return 0;
 	} else if (game->pieces[startPiece].color != game->turn) {
+		return 0;
+	} else if (getAtIndex(pinned, start)) {
 		return 0;
 	}
 
@@ -89,31 +101,30 @@ int doMove(int start, int end, gamestate* game, int revert, int* isPromotion) {
 	game->board[start] = NONE_P;
 	move(game, start, end);
 
-	bitboard threats = 0;
-	int nbThreats;
 	if (enPassant) {
-		int tmp = end - BOARD_WIDTH*pawnDir;
-		int oldEnPassant = game->board[tmp];
-		game->board[tmp] = NONE_P;
+		int target = end - BOARD_WIDTH*pawnDir;
+		int oldEnPassant = game->board[target];
+		game->board[target] = NONE_P;
 
-		resetAtIndex(&game->bits, tmp);
-		resetAtIndex(&game->byColor[oppColor], tmp);
-		nbThreats = threatened2(game, kingIndex, &threats);
-		if (nbThreats || revert) {
-			game->board[tmp] = oldEnPassant;
-			setAtIndex(&game->bits, tmp);
-			setAtIndex(&game->byColor[oppColor], tmp);
-			if(nbThreats) {
+		resetAtIndex(&game->bits, target);
+		resetAtIndex(&game->byColor[oppColor], target);
+		int isPinned = getAtIndex(pinned, target);
+		if (isPinned || revert) {
+			game->board[target] = oldEnPassant;
+			setAtIndex(&game->bits, target);
+			setAtIndex(&game->byColor[oppColor], target);
+			if(isPinned) {
 				goto reset;
 			}
 		}
-	}else {
-		nbThreats = threatened2(game, kingIndex, &threats);
+	}
+	if (game->pieces[startPiece].type == KING) {
+		// if the king is moving, check if not ending in check
+		bitboard threats = 0;
+		int nbThreats = threatened2(game, kingIndex, &threats);
 		if (nbThreats) {
 			goto reset;
 		}
-	}
-	if (game->pieces[startPiece].type == KING) {
 		if (abs(start-end) == 2 && getAtIndex(game->bits, end)) {
 			// a castling must end on an empty tile
 			goto reset;

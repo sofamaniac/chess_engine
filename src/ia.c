@@ -14,7 +14,7 @@ extern const bitboard RAYS[8][BOARD_SIZE];
 extern const bitboard singleTile[BOARD_SIZE];
 extern const bitboard one;
 
-__attribute__((always_inline)) void threatsSliding(gamestate* game, int position, int start, int end, int color, bitboard* result) {
+void threatsSliding(gamestate* game, int position, int start, int end, int color, bitboard* result) {
 
 	for (int i = start ; i < end ; i++) {
 		bitboard onPath = game->bits & RAYS[i][position];
@@ -44,7 +44,7 @@ __attribute__((always_inline)) void threatsSliding(gamestate* game, int position
 	}
 }
 
-__attribute__((always_inline)) bitboard pawnMoves(gamestate* game, int position, int color) {
+bitboard pawnMoves(gamestate* game, int position, int color) {
 
 	bitboard access = pawnAttackMask[color][position];
 	access |= pawnPositionMask[color][position] & ~game->bits;
@@ -65,7 +65,7 @@ __attribute__((always_inline)) bitboard pawnMoves(gamestate* game, int position,
 	return access;
 }
 
-__attribute__((always_inline)) bitboard kingMoves(gamestate* game, int position, int color) {
+bitboard kingMoves(gamestate* game, int position, int color) {
 	// if the king cannont castle at all
 	bitboard access = kingPositionMask[position];
 	if (color == WHITE && position != 60) {
@@ -95,7 +95,7 @@ bitboard accessible(gamestate* game, int from, int color) {
 	// return the tiles that can be accessed by the pieces at [from]
 	// Note: for pawns, one must check for the presence of enemy
 	// for the validity of the move
-	bitboard access;
+	bitboard access=0;
 	int index = game->board[from];
 
 	switch (game->pieces[index].type) {
@@ -162,7 +162,7 @@ int createAllMoves2(gamestate* game, moveList* list) {
 		destination = accessible(game, position, game->turn);
 		for (int i = 0; i < BOARD_SIZE; i++) {
 			if (destination & one) {
-				moveList* m = (moveList*) malloc(sizeof(moveList*));
+				moveList* m = (moveList*) malloc(sizeof(moveList));
 				m->start = list->start;
 				m->end = list->end;
 				m->next = list->next;
@@ -175,6 +175,48 @@ int createAllMoves2(gamestate* game, moveList* list) {
 		}
 	}
 	return size;
+}
+bitboard getPinned(gamestate game, int turn) {
+	// pieces can be pinned only by rook, bishop, or queens
+	bitboard result = 0;
+	int oppCol = turn == WHITE;
+	
+	for (int i = 0; i < 4 ; i++) {	// rook and queen
+		bitboard threats = RAYS[i][game.kingsIndex[turn]] & game.byColor[oppCol];
+		threats &= (game.byType[QUEEN] | game.byType[ROOK]);
+		if (threats != 0) {	// there are threats to the king
+			int firstOnPath;
+			if (i < 2) {
+				firstOnPath = msb(threats);
+			} else {
+				firstOnPath = lsb(threats);
+			}
+			bitboard candidates = RAYS[i][game.kingsIndex[turn]] & game.bits & ~RAYS[i][firstOnPath];
+
+			if (lsb(candidates) == msb(candidates)) {	// only one piece on ray
+				result |= candidates;
+			}
+		}
+
+	}
+	for (int i = 4; i < 8 ; i++) {	// bishop and queen
+		bitboard threats = RAYS[i][game.kingsIndex[turn]] & game.byColor[oppCol];
+		threats &= (game.byType[QUEEN] | game.byType[BISHOP]);
+		if (threats != 0) {	// there are threats to the king
+			int firstOnPath;
+			if (i < 6) {
+				firstOnPath = msb(threats);
+			} else {
+				firstOnPath = lsb(threats);
+			}
+			bitboard candidates = RAYS[i][game.kingsIndex[turn]] & game.bits & ~RAYS[i][firstOnPath];
+
+			if (lsb(candidates) == msb(candidates)) {	// only one piece on ray
+				result |= candidates;
+			}
+		}
+	}
+	return result;
 }
 
 void freeMoveList(moveList* list) {
@@ -193,19 +235,22 @@ int depthSearch(gamestate game, int depth) {
 		return 1;
 	}
 	int totalMoves = 0;
-	moveList* list = (moveList*) malloc(sizeof(moveList*));
+	moveList* list = (moveList*) malloc(sizeof(moveList));
+	list->next = NULL;
+	list->start = -1;
+	list->end = -1;
 	moveList* iter = list;
 	int promotion = 0;
 	int tmp = 0;
 	gamestate newGame;
-	list->next = NULL;
 	
 	createAllMoves2(&game, list); // might create illegal moves
 	// those illegal moves will be ignored when actually doing the move
+	bitboard pinned = getPinned(game, game.turn);
 
-	while(list->next != NULL) {
+	while(list->start != -1) {
 		newGame = game;
-		if (doMove(iter->start, iter->end, &newGame, 0, &promotion)) {
+		if (doMove(iter->start, iter->end, &newGame, 0, &promotion, pinned)) {
 			if (promotion) {
 				for (int j = 1; j < 5; j++) {
 					promote(&newGame, iter->end, j);

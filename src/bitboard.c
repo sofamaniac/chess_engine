@@ -19,16 +19,16 @@ const bitboard one = 1;
 // we define numbers with only one bit set
 bitboard singleTile[BOARD_SIZE];
 
-__attribute__((always_inline)) void setAtIndex(bitboard* b, unsigned int index) {
+void setAtIndex(bitboard* b, unsigned int index) {
 	*b |= singleTile[index];
 }
-__attribute__((always_inline)) void resetAtIndex(bitboard* b, unsigned int index) {
+void resetAtIndex(bitboard* b, unsigned int index) {
 	*b &= ~(singleTile[index]);
 }
 void togglingIndex(bitboard* b, unsigned int index) {
 	*b ^= singleTile[index];
 }
-__attribute__((always_inline)) int getAtIndex(bitboard b, unsigned int index) {
+int getAtIndex(bitboard b, unsigned int index) {
 	return (b >> index) & one;
 }
 
@@ -225,7 +225,7 @@ const int index64[64] = {
  * @return index (0..63) of most significant one bit
  */
 // wanted to use __builtin_clz, but it's limited to 32 bits
-__attribute__((always_inline)) int bitScanReverse(bitboard bb) {
+int bitScanReverse(bitboard bb) {
    const bitboard debruijn64 = (bitboard) 0x03f79d71b4cb0a89;
    bb |= bb >> 1; 
    bb |= bb >> 2;
@@ -243,7 +243,7 @@ __attribute__((always_inline)) int bitScanReverse(bitboard bb) {
  * @precondition bb != 0
  * @return index (0..63) of least significant one bit
  */
-__attribute__((always_inline)) int bitScanForward(bitboard bb) {
+int bitScanForward(bitboard bb) {
    const bitboard debruijn64 = (bitboard) 0x03f79d71b4cb0a89;
    return index64[((bb ^ (bb-1)) * debruijn64) >> 58];
 }

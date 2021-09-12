@@ -1,0 +1,25 @@
+The purpose of this branch is to rewrite the move
+generation and verification by using pinned pieces.
+
+Todo so, I think the best option is to
+look for enemy pieces that pose a threats to the king,
+ignoring allied pieces.
+The best option might be to do this direction by direction,
+and then look for each direction with a threats to the king
+the number of allied pieces on the ray. 
+If this number >= 2, then no pin pieces, if == 1 and
+then pin piece, other wise check (can also be used to get
+the position of the piece(s) checking the king).
+In addition to make it faster to get the pieces that
+pose a threats to the king, I propose to add to the 
+gamestate structure a bitboard for every type of piece
+(independant of color) which can be used to quickly calculate
+if there is a piece threatenning the king (by intersection
+of the ray from the king position, the piece bitboard and
+of the appropriate byColor bitboard).
+
+
+One easy way to implement the bitboard for each pieces type
+is to add an array of bitboard to gamestate, which
+can then be accessed through, for example, game->byPieces[PAWN],
+which reduce the number of branches that need to be written.
